@@ -158,7 +158,7 @@ class User(db.Model):
         It searches for a user whose password hash matches this password
         and, if it finds such a user, returns that user object.
 
-        If can't find matching user (or if password is wrong), returns False.
+        If it can't find matching user (or if password is wrong), returns False.
         """
 
         user = cls.query.filter_by(username=username).first()
@@ -169,6 +169,8 @@ class User(db.Model):
                 return user
 
         return False
+
+
 
 
 class Message(db.Model):
