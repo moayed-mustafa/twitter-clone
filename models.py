@@ -30,7 +30,7 @@ class Follows(db.Model):
 class Likes(db.Model):
     """Mapping user likes to warbles."""
 
-    __tablename__ = 'likes' 
+    __tablename__ = 'likes'
 
     id = db.Column(
         db.Integer,
@@ -60,43 +60,44 @@ class User(db.Model):
     )
 
     email = db.Column(
-        db.Text,
+        db.String,
         nullable=False,
         unique=True,
     )
 
     username = db.Column(
-        db.Text,
+        db.String,
         nullable=False,
         unique=True,
     )
 
     image_url = db.Column(
-        db.Text,
+        db.String,
         default="/static/images/default-pic.png",
     )
 
     header_image_url = db.Column(
-        db.Text,
+        db.String,
         default="/static/images/warbler-hero.jpg"
     )
 
     bio = db.Column(
-        db.Text,
+        db.String,
     )
 
     location = db.Column(
-        db.Text,
+        db.String,
     )
 
     password = db.Column(
-        db.Text,
+        db.String,
         nullable=False,
     )
 
     messages = db.relationship('Message')
 
     followers = db.relationship(
+        # assiging User model as the table to relaate to is fishy I think!
         "User",
         secondary="follows",
         primaryjoin=(Follows.user_being_followed_id == id),

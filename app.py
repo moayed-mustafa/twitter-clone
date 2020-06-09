@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
@@ -114,6 +114,16 @@ def logout():
     """Handle logout of user."""
 
     # IMPLEMENT THIS
+    # validate:
+    if not g.user:
+        flash('log in first', 'danger')
+
+    do_logout()
+    flash('logged out successfuly', 'success')
+    return redirect('/login')
+
+
+
 
 
 ##############################################################################
@@ -132,6 +142,8 @@ def list_users():
         users = User.query.all()
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
+
+
 
     return render_template('users/index.html', users=users)
 
@@ -297,6 +309,8 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        # import pdb
+        # pdb.set_trace()
 
         return render_template('home.html', messages=messages)
 
