@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm,UserUpdateForm
-from models import db, connect_db, User, Message, bcrypt
+from models import db, connect_db, User, Message, Likes, bcrypt
 
 CURR_USER_KEY = "curr_user"
 
@@ -28,7 +28,8 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
-
+        # THE DECORATOR CONTROLS THE STATE OF THE BACKEND, AND IT HAPPENS BEFORE EVERY REQUEST
+# ========================================================================================================
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
@@ -52,7 +53,8 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
-
+                                    # SIGNUP ROUTE
+# ========================================================================================================
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
     """Handle user signup.
@@ -87,8 +89,8 @@ def signup():
 
     else:
         return render_template('users/signup.html', form=form)
-
-
+                                    # LOGIN ROUTE
+# ========================================================================================================
 @app.route('/login', methods=["GET", "POST"])
 def login():
     """Handle user login."""
@@ -100,6 +102,7 @@ def login():
                                  form.password.data)
 
         if user:
+            # stores the user id in the session
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
@@ -121,9 +124,6 @@ def logout():
     do_logout()
     flash('logged out successfuly', 'success')
     return redirect('/login')
-
-
-
 
 
 ##############################################################################
@@ -219,6 +219,32 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
+                                    # ADD LIKE
+# ========================================================================================================
+@app.route('/users/add_like/<int:message_id>', methods=['POST'])
+def add_like(message_id):
+
+    # VALIDATION
+    if not g.user:
+        flash('got to be signed up first', 'danger')
+        return redirect('/')
+    else:
+        message = Message.query.get(message_id)
+        if message not in g.user.likes:
+            g.user.likes.append(message)
+            db.session.commit()
+            flash('like added', 'success')
+
+        else:
+            # message = Message.query.get(message_id)
+            g.user.likes.remove(message)
+            db.session.commit()
+            flash('like removed', 'danger')
+
+    return redirect('/')
+    # REDIRECTION
+                       # EDIT PROFILE
+# ========================================================================================================
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
@@ -329,19 +355,21 @@ def homepage():
     """
 
     if g.user:
-        messages = (Message
-                    .query
-                    .order_by(Message.timestamp.desc())
-                    .limit(100)
-                    .all())
+        # messages = (Message
+        #             .query
+        #             .order_by(Message.timestamp.desc())
+        #             .limit(100)
+        #             .all())
         # this is kind of hacky, try to find a better way
         following = g.user.following
         msgs = [followed.messages for followed in following]
+        # this is also hacky, your warbles are always prioretized!
+        msgs.insert( 0,g.user.messages)
         import itertools
         flat_msgs = list(itertools.chain(*msgs))
 
-        # import pdb
-        # pdb.set_trace()
+
+
 
         return render_template('home.html', messages=flat_msgs)
 
