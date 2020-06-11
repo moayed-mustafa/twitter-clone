@@ -16,11 +16,13 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgres:///warbler'))
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_ECHO'] = False
+# app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
-toolbar = DebugToolbarExtension(app)
+app.config['TESTING'] = True
+# this is commented out only for now for testing purposes
+# toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
@@ -322,7 +324,9 @@ def messages_add():
 @app.route('/messages/<int:message_id>', methods=["GET"])
 def messages_show(message_id):
     """Show a message."""
-
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
     msg = Message.query.get(message_id)
     return render_template('messages/show.html', message=msg)
 
@@ -355,11 +359,7 @@ def homepage():
     """
 
     if g.user:
-        # messages = (Message
-        #             .query
-        #             .order_by(Message.timestamp.desc())
-        #             .limit(100)
-        #             .all())
+
         # this is kind of hacky, try to find a better way
         following = g.user.following
         msgs = [followed.messages for followed in following]
