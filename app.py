@@ -16,9 +16,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgres:///warbler'))
 
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SQLALCHEMY_ECHO'] = False
-# app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = False
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 app.config['TESTING'] = True
 # this is commented out only for now for testing purposes
@@ -149,6 +149,7 @@ def list_users():
 
     return render_template('users/index.html', users=users)
 
+# ========================================================================================================
 
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
@@ -166,6 +167,7 @@ def users_show(user_id):
                 .all())
     return render_template('users/show.html', user=user, messages=messages)
 
+# ========================================================================================================
 
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
@@ -178,6 +180,7 @@ def show_following(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/following.html', user=user)
 
+# ========================================================================================================
 
 @app.route('/users/<int:user_id>/followers')
 def users_followers(user_id):
@@ -190,6 +193,7 @@ def users_followers(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
 
+# ========================================================================================================
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
@@ -205,6 +209,7 @@ def add_follow(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
+# ========================================================================================================
 
 @app.route('/users/stop-following/<int:follow_id>', methods=['POST'])
 def stop_following(follow_id):
@@ -244,7 +249,7 @@ def add_like(message_id):
             flash('like removed', 'danger')
 
     return redirect('/')
-    # REDIRECTION
+
                        # EDIT PROFILE
 # ========================================================================================================
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -278,6 +283,7 @@ def profile():
                 return redirect("/users/profile")
             # render the form
     return render_template('users/edit.html', form=form)
+# ========================================================================================================
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
@@ -289,7 +295,7 @@ def delete_user():
 
     do_logout()
 
-    db.session.delete(g.user)
+    User.query.filter_by(id = g.user.id).delete()
     db.session.commit()
 
     return redirect("/signup")
@@ -312,14 +318,16 @@ def messages_add():
     form = MessageForm()
 
     if form.validate_on_submit():
-        msg = Message(text=form.text.data)
-        g.user.messages.append(msg)
+        msg = Message(text=form.text.data, user_id=g.user.id)
+        db.session.add(msg)
+        # g.user.messages.append(msg)
         db.session.commit()
 
         return redirect(f"/users/{g.user.id}")
 
     return render_template('messages/new.html', form=form)
 
+# ========================================================================================================
 
 @app.route('/messages/<int:message_id>', methods=["GET"])
 def messages_show(message_id):
@@ -330,6 +338,7 @@ def messages_show(message_id):
     msg = Message.query.get(message_id)
     return render_template('messages/show.html', message=msg)
 
+# ========================================================================================================
 
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
 def messages_destroy(message_id):

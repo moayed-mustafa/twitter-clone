@@ -33,11 +33,9 @@ db.create_all()
 # Don't have WTForms use CSRF at all, since it's a pain to test
 
 app.config['WTF_CSRF_ENABLED'] = False
-# app = Flask(__name__)
-# app.config['TESTING'] = True
-# app.testing = True
 
 
+# ===================================================================================================
 class MessageViewTestCase(TestCase):
     """Test views for messages."""
 
@@ -58,8 +56,12 @@ class MessageViewTestCase(TestCase):
         self.testmsg = Message(text='This is a messge by test user', user_id=self.testuser.id)
         db.session.add(self.testmsg)
         db.session.commit()
+
+        # import pdb
+        # pdb.set_trace()
         self.MSG = "MSG"
 
+# ===================================================================================================
 
     def test_add_message_logged_in(self):
         """Can use add a message?"""
@@ -81,6 +83,7 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.filter(Message.text == 'Hello').first()
             self.assertEqual(msg.text, "Hello")
+    # ===================================================================================================
 
     def test_show_message_logged_in(self):
         """ can we see a message"""
@@ -101,6 +104,7 @@ class MessageViewTestCase(TestCase):
             html = res.get_data(as_text=True)
             tag = f'<p class="single-message">{self.testmsg.text}</p>'
             self.assertIn(tag, html)
+    # ===================================================================================================
 
     def test_delete_message_logged_in(self):
         """ can we delete a message?"""
@@ -118,12 +122,14 @@ class MessageViewTestCase(TestCase):
             tag = '<title>Redirecting...</title>'
             html = res.get_data(as_text=True)
             self.assertIn(tag, html)
+    # ===================================================================================================
 
     def test_add_message_logged_out(self):
         with self.client as client:
             res = client.post("/messages/new", data={"text": "Hello"})
             self.assertEqual(res.status_code, 302)
             self.assertEqual(res.location, 'http://localhost/')
+# ===================================================================================================
 
     def test_delete_message_logged_out(self):
         with self.client as client:
@@ -131,6 +137,7 @@ class MessageViewTestCase(TestCase):
             res = client.post(url)
             self.assertEqual(res.status_code, 302)
             self.assertEqual(res.location, 'http://localhost/')
+# ===================================================================================================
 
     def test_show_message_logged_out(self):
         with self.client as client:
