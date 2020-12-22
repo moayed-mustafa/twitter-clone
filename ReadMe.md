@@ -2,6 +2,8 @@
 - Warbler is a twitter clone application that creates a social network where users could post
 about topics they are interested in, follow other users and message them directly.
 
+- Live Site: https://moayed-twitter-clone.herokuapp.com/
+
 ## Technology
 - Warbler relies on postgres for the database and Flask Python for building the backend api.
 - the frontend UI is done using Jinja templates and styled using css
