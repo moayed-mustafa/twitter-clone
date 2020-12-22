@@ -228,11 +228,13 @@ class UserViewTestCase(TestCase):
             id = self.testmsg.id
             with client.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
+                flash_message_success = dict(sess['_flashes']).get('success')
 
             url = f'users/add_like/{id}'
             res = client.post(url)
             self.assertEqual(res.status_code, 302)
             self.assertEqual(res.location, 'http://localhost/')
+            self.assertEqual(flash_message_success, 'like added')
             # test flash messagin
             with client.session_transaction() as sess:
                  flash_message_success = dict(sess['_flashes']).get('success')
@@ -288,6 +290,7 @@ def strong_reference_session(session):
     listens_for(session, "deleted_to_persistent")
     listens_for(session, "detached_to_persistent")
     listens_for(session, "loaded_as_persistent")
+
     def strong_ref_object(sess, instance):
         if 'refs' not in sess.info:
             sess.info['refs'] = refs = set()
